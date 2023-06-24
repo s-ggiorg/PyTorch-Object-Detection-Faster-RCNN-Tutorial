@@ -1,6 +1,9 @@
 import logging
 import pathlib
+import os
+path_root = os.path.dirname(os.path.realpath(__file__)) + "/src"
 import sys
+sys.path.append(str(path_root))
 from dataclasses import asdict, dataclass, field
 from typing import Dict, List, Optional, Tuple
 
@@ -57,9 +60,9 @@ class NeptuneSettings(BaseSettings):
     """
 
     api_key: str = Field(default=..., env="NEPTUNE")
-    OWNER: str = "johschmidt42"  # set your name here, e.g. johndoe22
-    PROJECT: str = "Heads"  # set your project name here, e.g. Heads
-    EXPERIMENT: str = "heads"  # set your experiment name here, e.g. heads
+    OWNER: str = "iotinnovation832"  # set your name here, e.g. johndoe22
+    PROJECT: str = "Greg"  # set your project name here, e.g. Heads
+    EXPERIMENT: str = "training"  # set your experiment name here, e.g. heads
 
     class Config:
         # this tells pydantic to read the variables from the .env file
@@ -72,18 +75,18 @@ class Parameters:
     Dataclass for the parameters.
     """
 
-    BATCH_SIZE: int = 2
-    CACHE: bool = True
+    BATCH_SIZE: int = 16
+    CACHE: bool = False
     SAVE_DIR: Optional[
         str
     ] = None  # checkpoints will be saved to cwd (current working directory) if None
-    LOG_MODEL: bool = False  # whether to log the model to neptune after training
+    LOG_MODEL: bool = True  # whether to log the model to neptune after training
     ACCELERATOR: Optional[str] = "auto"  # set to "gpu" if you want to use GPU
     LR: float = 0.001
-    PRECISION: int = 32
+    PRECISION: int = 16
     CLASSES: int = 2
-    SEED: int = 42
-    MAXEPOCHS: int = 500
+    SEED: int = 24
+    MAXEPOCHS: int = 50
     PATIENCE: int = 50
     BACKBONE: ResNetBackbones = ResNetBackbones.RESNET34
     FPN: bool = False
@@ -122,7 +125,7 @@ def train():
     targets.sort()
 
     # mapping
-    mapping: Dict[str, int] = {"head": 1}
+    mapping: Dict[str, int] = {"Pedestrian": 1, "Biker": 2, }
 
     # training transformations and augmentations
     transforms_training: ComposeDouble = ComposeDouble(
