@@ -3,6 +3,7 @@ from collections import OrderedDict
 from itertools import chain
 from typing import List, Optional, Tuple
 
+import numpy
 import pytorch_lightning as pl
 import torch
 from torchvision.models.detection.faster_rcnn import FasterRCNN
@@ -238,10 +239,10 @@ class FasterRCNNLightning(pl.LightningModule):
         )
 
         per_class, m_ap = metric["per_class"], metric["m_ap"]
-        self.log("Validation_mAP", m_ap)
+        self.log("Validation_mAP", numpy.float32(m_ap))
 
         for key, value in per_class.items():
-            self.log(f"Validation_AP_{key}", value["AP"])
+            self.log(f"Validation_AP_{key}", numpy.float32(value["AP"]))
 
     def test_step(self, batch, batch_idx):
         # Batch
@@ -268,25 +269,25 @@ class FasterRCNNLightning(pl.LightningModule):
 
         return out
 
-    def on_test_epoch_end(self):
-        gt_boxes = [out["gt_boxes"] for out in self.test_step_outputs]
-        gt_boxes = list(chain(*gt_boxes))
-        pred_boxes = [out["pred_boxes"] for out in self.test_step_outputs]
-        pred_boxes = list(chain(*pred_boxes))
-
-        metric = get_pascalvoc_metrics(
-            gt_boxes=gt_boxes,
-            det_boxes=pred_boxes,
-            iou_threshold=self.iou_threshold,
-            method=MethodAveragePrecision.EVERY_POINT_INTERPOLATION,
-            generate_table=True,
-        )
-
-        per_class, m_ap = metric["per_class"], metric["m_ap"]
-        self.log("Test_mAP", m_ap)
-
-        for key, value in per_class.items():
-            self.log(f"Test_AP_{key}", value["AP"])
+    #def on_test_epoch_end(self):
+    #    gt_boxes = [out["gt_boxes"] for out in self.test_step_outputs]
+    #    gt_boxes = list(chain(*gt_boxes))
+    #    pred_boxes = [out["pred_boxes"] for out in self.test_step_outputs]
+    #    pred_boxes = list(chain(*pred_boxes))
+#
+    #    metric = get_pascalvoc_metrics(
+    #        gt_boxes=gt_boxes,
+    #        det_boxes=pred_boxes,
+    #        iou_threshold=self.iou_threshold,
+    #        method=MethodAveragePrecision.EVERY_POINT_INTERPOLATION,
+    #        generate_table=True,
+    #    )
+#
+    #    per_class, m_ap = metric["per_class"], metric["m_ap"]
+    #    self.log("Test_mAP", m_ap)
+#
+    #    for key, value in per_class.items():
+    #        self.log(f"Test_AP_{key}", value["AP"])
 
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(
